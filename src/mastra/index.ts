@@ -1,9 +1,9 @@
 import { Mastra } from "@mastra/core";
 
-import { weatherAgent } from "./agents/weather";
+import { careConnectAgent } from "./agents/assistant";
 
 export const mastra = new Mastra({
-  agents: { weatherAgent },
+  agents: { careConnectAgent },
   telemetry: {
     enabled: false
   }

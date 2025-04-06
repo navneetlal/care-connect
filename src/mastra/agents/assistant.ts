@@ -1,9 +1,11 @@
 import { Agent } from "@mastra/core/agent";
 import { Memory } from "@mastra/memory";
+import { PGVECTOR_PROMPT } from "@mastra/rag";
 import { PgVector, PostgresStore } from "@mastra/pg";
 
 import { createOllama } from "ollama-ai-provider";
 
+import { checkAgentGuidelinesTool } from "../tools/agent-guidelines-tool";
 import { bookAppointmentTool } from "../tools/book-appointment-tool";
 import { doctorAvailabilityTool } from "../tools/doctor-availability-tool";
 
@@ -33,36 +35,29 @@ const ollama = createOllama({
   baseURL: constant.OLLAMA_BASE_URL,
 });
 
-const chat = ollama.chat("phi4-mini", {
-  simulateStreaming: true,
+const chat = ollama.chat("llama3.2:3b", {
+  simulateStreaming: true
 });
 
 export const careConnectAgent = new Agent({
-  name: "CareConnect Agent",
+  name: "Sophia",
   instructions: `
-    You are a helpful healthcare assistant for CareConnect Hospital. Your role is to help patients and visitors access healthcare services efficiently.
+  You are Sophia, a healthcare assistant for CareConnect Hospital. Help patients access healthcare services efficiently.
 
-    Your primary functions are:
-      - Provide information about doctor availability and specialties
-      - Share details about medical services offered at CareConnect
-      - Assist with booking appointments with the appropriate healthcare providers
-      - Analyze patient symptoms and recommend appropriate medical specialties
+  Your primary functions are:
+    - Provide information about doctor availability and specialties
+    - Assist with booking appointments with appropriate healthcare providers
+    - Analyze patient symptoms and recommend suitable medical specialties
 
-    When responding:
-      - If a patient describes symptoms, use the symptomAnalysisTool to suggest appropriate specialists
-      - Always ask for specific details if the request is vague (e.g., what specialty they need, preferred date/time)
-      - Verify patient information securely before booking appointments
-      - Explain any preparation needed for appointments or procedures
-      - Be empathetic and professional when discussing health concerns
-      - Keep responses clear, concise, and helpful
-      - If you're unable to help with a specific medical question, recommend speaking with a healthcare professional
+  Important: Always use doctorAvailabilityTool to check availability and bookAppointmentTool to schedule appointments. Never attempt these functions without the proper tools.
 
-    Use the provided tools to fetch information and book appointments.
+  When you need guidance on workflows or procedures, search your knowledge base for relevant instructions.
 `,
   model: chat,
   tools: {
     doctorAvailabilityTool,
     bookAppointmentTool,
+    checkAgentGuidelinesTool
   },
-  memory: memory,
+  memory: memory
 });
