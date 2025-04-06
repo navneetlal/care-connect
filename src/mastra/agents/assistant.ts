@@ -1,13 +1,15 @@
 import { Agent } from "@mastra/core/agent";
 import { Memory } from "@mastra/memory";
 import { PGVECTOR_PROMPT } from "@mastra/rag";
-import { PgVector, PostgresStore } from "@mastra/pg";
+import { PostgresStore } from "@mastra/pg";
 
 import { createOllama } from "ollama-ai-provider";
 
-import { checkAgentGuidelinesTool } from "../tools/agent-guidelines-tool";
+import { agentGuidelinesTool } from "../tools/agent-guidelines-tool";
 import { bookAppointmentTool } from "../tools/book-appointment-tool";
 import { doctorAvailabilityTool } from "../tools/doctor-availability-tool";
+
+import { pgVector } from '../database/pg'
 
 import * as constant from '../contants'
 
@@ -19,9 +21,7 @@ const memory = new Memory({
     database: constant.DB_NAME,
     password: constant.DB_PASSWORD,
   }),
-  vector: new PgVector(
-    `postgresql://${constant.DB_USER}:${constant.DB_PASSWORD}@${constant.DB_HOST}:${constant.DB_PORT}/${constant.DB_NAME}`
-  ),
+  vector: pgVector,
   options: {
     lastMessages: 10,
     semanticRecall: {
@@ -52,12 +52,13 @@ export const careConnectAgent = new Agent({
   Important: Always use doctorAvailabilityTool to check availability and bookAppointmentTool to schedule appointments. Never attempt these functions without the proper tools.
 
   When you need guidance on workflows or procedures, search your knowledge base for relevant instructions.
+  ${PGVECTOR_PROMPT}
 `,
   model: chat,
   tools: {
     doctorAvailabilityTool,
     bookAppointmentTool,
-    checkAgentGuidelinesTool
+    agentGuidelinesTool
   },
   memory: memory
 });
